@@ -1,5 +1,5 @@
 param (
-  [string]$PackageName = "cc7f8ce5-ee2c-404d-a85e-c6f8c553343d",
+  [string]$PackageName = "GenericShellEx",
   [string]$DllRelativePath = "GenericShellEx.dll",
   [switch]$Unregister
 )
@@ -38,7 +38,7 @@ $Handlers = @(
 function Get-DllPath {
   $package = Get-AppxPackage -Name $PackageName
 
-  if (-not $package) {
+  if (-Not $package) {
     Write-Error "Package '$PackageName' not found."
     exit 1
   }
@@ -154,7 +154,7 @@ if ($Unregister) {
 } else {
   $dllPath = Get-DllPath
 
-  if (-not (Test-Path $dllPath)) {
+  if (-Not (Test-Path $dllPath)) {
     Write-Error "DLL not found: $dllPath"
 
     exit 1
