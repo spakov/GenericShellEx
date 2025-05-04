@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0'">
+    <VisualStudioVersion>15.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup>
+    <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge\</WapProjPath>
+  </PropertyGroup>
+  <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" />
+  <PropertyGroup>
+    <ProjectGuid>d1a7a043-92e3-4e41-912c-839f6cd9790b</ProjectGuid>
+    <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <NoWarn>$(NoWarn);NU1702</NoWarn>
+    <EntryPointProjectUniqueName>..\FullTrustStub\FullTrustStub.vcxproj</EntryPointProjectUniqueName>
+  </PropertyGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\150x150.png" />
+    <Content Include="Images\44x44.png" />
+    <Content Include="GenericShellEx.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Target Name="CopyDLL" BeforeTargets="BeforeBuild" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Copy SourceFiles="..\x64\Release\GenericShellEx.dll" DestinationFolder="$(MSBuildProjectDirectory)" />
+  </Target>
+  <Target Name="Package" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PropertyGroup>
+      <ReleasePath>bin\x64\Release</ReleasePath>
+      <WindowsSdkVersion>10.0.22621.0</WindowsSdkVersion>
+      <WindowsSdkPath>C:\Program Files (x86)\Windows Kits\10\bin\$(WindowsSdkVersion)\$(Platform)</WindowsSdkPath>
+    </PropertyGroup>
+    <Exec Command="del $(ReleasePath)\FullTrustStub\*.pdb" />
+    <Exec Command="del $(ReleasePath)\*.appxrecipe" />
+    <Exec Command="del $(ReleasePath)\resources.pri" />
+    <Exec Command="rmdir /s /q $(ReleasePath)\GenericShellEx" />
+    <Exec Command="rmdir /s /q $(ReleasePath)\Images" />
+    <Exec Command="mkdir $(ReleasePath)\Images" />
+    <Exec Command="copy Images\*.png $(ReleasePath)\Images\" />
+    <Exec Command="del $(ReleasePath)\Images\*scale*" />
+    <Exec Command="&quot;$(WindowsSdkPath)\makeappx&quot; pack /o /h SHA256 /d $(ReleasePath) /p GenericShellExPackage.msix" />
+    <Exec Command="&quot;$(WindowsSdkPath)\signtool&quot; sign /a /v /sha1 DDAF333D25B8A30F9AB9CF9E655F5244180AB142 /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 GenericShellExPackage.msix" />
+  </Target>
+  <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\FullTrustStub\FullTrustStub.vcxproj" />
+    <ProjectReference Include="..\GenericShellEx\GenericShellEx.vcxproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
