@@ -1,0 +1,4 @@
+LIBRARY "GenericShellEx"
+EXPORTS
+    DllGetClassObject     PRIVATE
+    DllCanUnloadNow       PRIVATE

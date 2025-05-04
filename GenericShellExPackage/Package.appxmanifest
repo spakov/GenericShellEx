@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap com desktop4 desktop5 rescap">
+
+  <Identity
+    Name="GenericShellEx"
+    Publisher="CN=spakov"
+    Version="1.0.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Generic Shell Extensions</DisplayName>
+    <PublisherDisplayName>spakov</PublisherDisplayName>
+    <Logo>Images\150x150.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="GenericShellEx"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Generic Shell Extensions"
+        Description="Generic Shell Extensions"
+        BackgroundColor="transparent"
+        Square44x44Logo="Images\44x44.png"
+        Square150x150Logo="Images\150x150.png">
+      </uap:VisualElements>
+      <Extensions>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:SurrogateServer DisplayName="GenericShellEx">
+              <com:Class Id="ff8b806e-83c6-4df1-9fb4-698133580803" Path="GenericShellEx.dll" ThreadingModel="STA"/>
+              <com:Class Id="aeb1215c-84ff-43cc-aec7-e02c2b56e74c" Path="GenericShellEx.dll" ThreadingModel="STA"/>
+              <com:Class Id="92fd673f-d257-4ac8-8731-c7cde82fa49e" Path="GenericShellEx.dll" ThreadingModel="STA"/>
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop4:ItemType Type="*">
+              <desktop4:Verb Id="GenericShellEx" Clsid="ff8b806e-83c6-4df1-9fb4-698133580803"/>
+            </desktop4:ItemType>
+            <desktop5:ItemType Type="Directory">
+              <desktop5:Verb Id="GenericShellEx" Clsid="aeb1215c-84ff-43cc-aec7-e02c2b56e74c"/>
+            </desktop5:ItemType>
+            <desktop5:ItemType Type="Directory\Background">
+              <desktop5:Verb Id="GenericShellEx" Clsid="92fd673f-d257-4ac8-8731-c7cde82fa49e"/>
+            </desktop5:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
