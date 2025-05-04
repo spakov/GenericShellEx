@@ -67,6 +67,11 @@ sometimes prevents them from presenting their context menu entries. Logging is
 useful for troubleshooting but definitely prevents the shell extension from
 working reliably.
 
+## License
+GenericShellEx is released under the MIT License. It also uses
+[nlohmann/json](https://github.com/nlohmann/json), which is also licensed under
+the MIT License.
+
 ## Background
 Windows 11 is incredibly finicky about allowing items to be added to the "new"
 right-click Explorer context menu. The classic `HKEY_CLASSES_ROOT` is still
