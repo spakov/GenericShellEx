@@ -31,15 +31,24 @@
     <Content Include="Images\150x150.png" />
     <Content Include="Images\44x44.png" />
     <Content Include="GenericShellEx.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Target Name="CopyDLL" BeforeTargets="BeforeBuild" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <Copy SourceFiles="..\x64\Release\GenericShellEx.dll" DestinationFolder="$(MSBuildProjectDirectory)" />
   </Target>
-  <Target Name="Package" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+  <PropertyGroup>
+    <ReleasePath>bin\x64\Release</ReleasePath>
+    <MsixPackage>GenericShellExPackage.msix</MsixPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageInputs Include="Package.appxmanifest" />
+    <PackageInputs Include="$(ReleasePath)\FullTrustStub\FullTrustStub.exe" />
+    <PackageInputs Include="GenericShellEx.dll" />
+  </ItemGroup>
+  <Target Name="Package" AfterTargets="Build" Inputs="@(PackageInputs)" Outputs="$(MsixPackage)" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <PropertyGroup>
-      <ReleasePath>bin\x64\Release</ReleasePath>
+      <CertificateThumbprint>DDAF333D25B8A30F9AB9CF9E655F5244180AB142</CertificateThumbprint>
       <WindowsSdkVersion>10.0.22621.0</WindowsSdkVersion>
       <WindowsSdkPath>C:\Program Files (x86)\Windows Kits\10\bin\$(WindowsSdkVersion)\$(Platform)</WindowsSdkPath>
     </PropertyGroup>
@@ -51,8 +60,8 @@
     <Exec Command="mkdir $(ReleasePath)\Images" />
     <Exec Command="copy Images\*.png $(ReleasePath)\Images\" />
     <Exec Command="del $(ReleasePath)\Images\*scale*" />
-    <Exec Command="&quot;$(WindowsSdkPath)\makeappx&quot; pack /o /h SHA256 /d $(ReleasePath) /p GenericShellExPackage.msix" />
-    <Exec Command="&quot;$(WindowsSdkPath)\signtool&quot; sign /a /v /sha1 DDAF333D25B8A30F9AB9CF9E655F5244180AB142 /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 GenericShellExPackage.msix" />
+    <Exec Command="&quot;$(WindowsSdkPath)\makeappx&quot; pack /o /h SHA256 /d $(ReleasePath) /p $(MsixPackage)" />
+    <Exec Command="&quot;$(WindowsSdkPath)\signtool&quot; sign /a /v /sha1 $(CertificateThumbprint) /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 $(MsixPackage)" />
   </Target>
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
   <ItemGroup>

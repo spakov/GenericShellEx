@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <VersionPrefix>1.0.0.1</VersionPrefix>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\GenericShellEx.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <Title>Generic Shell Extensions</Title>
+    <Authors>spakov</Authors>
+    <Description>Generic shell extension for IExplorerCommand context menu entries in Windows 11.</Description>
+    <RepositoryUrl>https://github.com/spakov/GenericShellEx</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\GenericShellExPackage.msix" />
+    <None Remove="Resources\Register-GenericShellEx.ps1" />
+    <None Remove="Resources\spakov.cer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\GenericShellEx.ico" />
+    <EmbeddedResource Include="Resources\GenericShellExPackage.msix" />
+    <EmbeddedResource Include="Resources\Register-GenericShellEx.ps1" />
+    <EmbeddedResource Include="Resources\spakov.cer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <Target Name="CopyResources" BeforeTargets="BeforeBuild">
+    <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=x64" />
+    <Copy SourceFiles="..\GenericShellExPackage\GenericShellExPackage.msix" DestinationFolder="Resources\" />
+    <Copy SourceFiles="..\Register-GenericShellEx.ps1" DestinationFolder="Resources\" />
+    <Copy SourceFiles="..\spakov.cer" DestinationFolder="Resources\" />
+  </Target>
+
+</Project>
