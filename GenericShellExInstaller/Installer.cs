@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 
+#nullable enable
 namespace GenericShellExInstaller {
   internal static class Installer {
     /// <summary>
@@ -41,8 +42,6 @@ namespace GenericShellExInstaller {
 
       if (uninstall) {
         Uninstall();
-
-        return;
       }
 
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
@@ -88,9 +87,7 @@ namespace GenericShellExInstaller {
     /// <summary>
     /// Uninstalls GenericShellEx.
     /// </summary>
-    /// <returns><c>true</c> if the uninstallation succeeded or <c>false</c>
-    /// otherwise.</returns>
-    private static bool Uninstall() {
+    private static void Uninstall() {
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
         throw new UninstallerException($"{Program.ShortName} can only be installed on Windows.");
       }
@@ -111,7 +108,7 @@ namespace GenericShellExInstaller {
 
       Log("Uninstallation complete.");
 
-      return true;
+      Environment.Exit(0);
     }
 
     /// <summary>
@@ -208,6 +205,42 @@ namespace GenericShellExInstaller {
       string msixPackageExtractedPath = $"{workingDirectory}\\{Program.MsixPackage}";
       string msixPackageExtractedManifestPath = $"{msixPackageExtractedPath}\\{Program.MsixPackageManifest}";
 
+      // Use a rather convoluted and slow method to get the version of Windows
+      // since Environment.OSVersion.Version lies in .NET Framework
+
+      ProcessStartInfo processStartInfo;
+      Process? process;
+      string stdout;
+
+      processStartInfo = new() {
+        FileName = Program.PowerShell,
+        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersWindowsVersion}",
+        RedirectStandardOutput = true,
+        UseShellExecute = false
+      };
+
+      process = Process.Start(processStartInfo);
+
+      if (process is null) {
+        throw new InstallerException($"Could not run {Program.PowerShellParametersWindowsVersion} in PowerShell");
+      }
+
+      stdout = process.StandardOutput.ReadToEnd();
+
+      process.WaitForExit();
+
+      if (!process.ExitCode.Equals(0)) {
+        throw new InstallerException($"{Program.PowerShellParametersWindowsVersion} failed");
+      }
+
+      Version osVersion;
+
+      try {
+        osVersion = new(stdout);
+      } catch (Exception e) {
+        throw new InstallerException($"Unable to obtain Windows version", e);
+      }
+
       try {
         ZipFile.ExtractToDirectory(msixPackageFile, msixPackageExtractedPath);
 
@@ -219,7 +252,7 @@ namespace GenericShellExInstaller {
         string _minVersion = targetDeviceFamily.Attributes![Program.MsixPackageManifestDependenciesTargetDeviceFamilyMinVersion]!.InnerText;
         Version version = new(_minVersion);
 
-        if (Environment.OSVersion.Version < version) {
+        if (osVersion < version) {
           throw new InstallerException($"{Program.ShortName} requires Windows version {version} and Windows is only version {Environment.OSVersion.Version}");
         }
       } catch (Exception e) {
@@ -287,7 +320,8 @@ namespace GenericShellExInstaller {
       processStartInfo = new() {
         FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageVersion, Program.ShortName)} {(Silent ? Program.PowerShellSilent : string.Empty)}",
-        RedirectStandardOutput = true
+        RedirectStandardOutput = true,
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -332,7 +366,8 @@ namespace GenericShellExInstaller {
 
       processStartInfo = new() {
         FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersAddAppxPackage} {msixPackageFile} {(Silent ? Program.PowerShellSilent : string.Empty)}"
+        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersAddAppxPackage} {msixPackageFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -415,7 +450,8 @@ namespace GenericShellExInstaller {
 
       processStartInfo = new() {
         FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {(Silent ? Program.PowerShellSilent : string.Empty)}"
+        Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -518,7 +554,8 @@ namespace GenericShellExInstaller {
 
       processStartInfo = new() {
         FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {Program.RegisterUnregister} {(Silent ? Program.PowerShellSilent : string.Empty)}"
+        Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {Program.RegisterUnregister} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -546,7 +583,8 @@ namespace GenericShellExInstaller {
       processStartInfo = new() {
         FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageFullName, Program.ShortName)} {(Silent ? Program.PowerShellSilent : string.Empty)}",
-        RedirectStandardOutput = true
+        RedirectStandardOutput = true,
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -569,7 +607,8 @@ namespace GenericShellExInstaller {
 
       processStartInfo = new() {
         FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersRemoveAppxPackage} {stdout} {(Silent ? Program.PowerShellSilent : string.Empty)}"
+        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersRemoveAppxPackage} {stdout} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        UseShellExecute = false
       };
 
       process = Process.Start(processStartInfo);
@@ -594,7 +633,7 @@ namespace GenericShellExInstaller {
         X509Store x509Store = new(StoreName.Root, StoreLocation.LocalMachine);
         x509Store.Open(OpenFlags.ReadWrite);
 
-        List<X509Certificate2> certificatesToRemove = [];
+        List<X509Certificate2> certificatesToRemove = new();
 
         foreach (X509Certificate2 certificate in x509Store.Certificates) {
           if (Program.KnownCertificateThumbprints.Contains(certificate.Thumbprint.ToLower())) {

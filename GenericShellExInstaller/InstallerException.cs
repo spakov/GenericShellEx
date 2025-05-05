@@ -1,5 +1,6 @@
 ﻿using System;
 
+#nullable enable
 namespace GenericShellExInstaller {
   /// <summary>
   /// An installer exception.

@@ -1,51 +1,79 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <ProjectGuid>{41C09894-79D8-448F-96E4-9EB59A8ED4D8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <RootNamespace>GenericShellExInstaller</RootNamespace>
+    <AssemblyName>GenericShellExInstaller</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <Optimize>true</Optimize>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-    <VersionPrefix>1.0.0.1</VersionPrefix>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Resources\GenericShellEx.ico</ApplicationIcon>
-    <PublishSingleFile>true</PublishSingleFile>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
-    <Title>Generic Shell Extensions</Title>
-    <Authors>spakov</Authors>
-    <Description>Generic shell extension for IExplorerCommand context menu entries in Windows 11.</Description>
-    <RepositoryUrl>https://github.com/spakov/GenericShellEx</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <LangVersion>10</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
     <DebugType>None</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <StartupObject>GenericShellExInstaller.Program</StartupObject>
+    <ApplicationIcon>Resources\GenericShellEx.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
-
   <ItemGroup>
-    <None Remove="Resources\GenericShellExPackage.msix" />
-    <None Remove="Resources\Register-GenericShellEx.ps1" />
-    <None Remove="Resources\spakov.cer" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
-
   <ItemGroup>
-    <EmbeddedResource Include="Resources\GenericShellEx.ico" />
+    <Compile Include="Installer.cs" />
+    <Compile Include="InstallerException.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="UninstallerException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\config.json" />
     <EmbeddedResource Include="Resources\GenericShellExPackage.msix" />
     <EmbeddedResource Include="Resources\Register-GenericShellEx.ps1" />
     <EmbeddedResource Include="Resources\spakov.cer" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <EmbeddedResource Include="Resources\GenericShellEx.ico" />
   </ItemGroup>
-
   <Target Name="CopyResources" BeforeTargets="BeforeBuild">
     <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=x64" />
     <Copy SourceFiles="..\GenericShellExPackage\GenericShellExPackage.msix" DestinationFolder="Resources\" />
     <Copy SourceFiles="..\Register-GenericShellEx.ps1" DestinationFolder="Resources\" />
     <Copy SourceFiles="..\spakov.cer" DestinationFolder="Resources\" />
   </Target>
-
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
