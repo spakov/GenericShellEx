@@ -67,14 +67,14 @@ namespace GenericShellExInstaller {
 
       Option<bool> installOption = new(
         name: "--install",
-        description: $"Installs {ShortName}.",
+        description: $"Installs {DisplayName}.",
         parseArgument: (_) => true,
         isDefault: true
       );
 
       Option<bool> uninstallOption = new(
         name: "--uninstall",
-        description: $"Uninstalls {ShortName}."
+        description: $"Uninstalls {DisplayName}."
       );
 
       Option<bool> silentOption = new(
@@ -83,7 +83,7 @@ namespace GenericShellExInstaller {
       );
 
       rootCommand = new(
-        description: $"{ShortName} installer."
+        description: $"{DisplayName} installer."
       ) {
         installOption,
         uninstallOption,
