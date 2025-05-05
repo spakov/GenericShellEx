@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
-using System.CommandLine;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 
 namespace GenericShellExInstaller {
-  public static class Program {
+  internal static class Program {
     internal const string ShortName = "GenericShellEx";
     internal const string DisplayName = "Generic Shell Extensions Infrastructure";
+    internal const string Publisher = "spakov";
     internal const string Icon = $"{ShortName}.ico";
+    internal const string Version = "1.0.0.2";
 
-    internal const string InstallerFile = "GenericShellExInstaller.exe";
+    internal const string InstallerCommand = "GenericShellExInstaller";
+    internal const string InstallerFile = $"{InstallerCommand}.exe";
     internal const string RegistrySoftwareKey = @"SOFTWARE";
     internal const string RegistryKey = @"Microsoft\Windows\CurrentVersion\Uninstall\spakov.GenericShellExInfrastructure";
     internal const string InstallLocation = $@"%PROGRAMFILES%\{ShortName}";
@@ -51,62 +53,109 @@ namespace GenericShellExInstaller {
     internal const string PowerShell = "pwsh";
     internal const string PowerShellSilent = "*> $null";
     internal const string PowerShellParameters = "-NoProfile -ExecutionPolicy Bypass -Command";
+    internal const string PowerShellParametersWindowsVersion = "Get-ComputerInfo | Select-Object -ExpandProperty OsHardwareAbstractionLayer";
     internal const string PowerShellParametersGetAppxPackageVersion = "Get-AppxPackage -Name {0} | Select-Object -ExpandProperty Version";
     internal const string PowerShellParametersGetAppxPackageFullName = "Get-AppxPackage -Name {0} | Select-Object -ExpandProperty PackageFullName";
     internal const string PowerShellParametersRemoveAppxPackage = "Remove-AppxPackage -Package";
     internal const string PowerShellParametersAddAppxPackage = "Add-AppxPackage -Path";
 
-    internal static readonly HashSet<string> KnownCertificateThumbprints = [
+    internal static readonly HashSet<string> KnownCertificateThumbprints = new() {
       "ddaf333d25b8a30f9ab9cf9e655f5244180ab142"
-    ];
+    };
 
-    public static async Task<int> Main(string[] args) {
-      int exitCode = 0;
+    private static readonly List<string> installOptions = new() {
+      "--install",
+      "--i",
+      "-i",
+      "/i"
+    };
 
-      RootCommand rootCommand;
+    private static readonly List<string> uninstallOptions = new() {
+      "--uninstall",
+      "--u",
+      "-u",
+      "/u"
+    };
 
-      Option<bool> installOption = new(
-        name: "--install",
-        description: $"Installs {DisplayName}.",
-        parseArgument: (_) => true,
-        isDefault: true
-      );
+    private static readonly List<string> silentOptions = new() {
+      "--silent",
+      "--s",
+      "-s",
+      "/s",
+      "--q",
+      "-q",
+      "/q"
+    };
 
-      Option<bool> uninstallOption = new(
-        name: "--uninstall",
-        description: $"Uninstalls {DisplayName}."
-      );
+    private static readonly List<string> helpOptions = new() {
+      "--help",
+      "--h",
+      "-h",
+      "/h",
+      "--?",
+      "-?",
+      "/?"
+    };
 
-      Option<bool> silentOption = new(
-        name: "--silent",
-        description: "Produce no output during installation/uninstallation."
-      );
+    public static int Main(string[] args) {
+      bool install = false;
+      bool uninstall = false;
+      bool silent = false;
+      bool help = false;
 
-      rootCommand = new(
-        description: $"{DisplayName} installer."
-      ) {
-        installOption,
-        uninstallOption,
-        silentOption
-      };
+      foreach (string arg in args) {
+        foreach (string installOption in installOptions) {
+          if (arg.ToLower().StartsWith(installOption)) install = true;
+        }
 
-      rootCommand.SetHandler(
-        (uninstall, silent) => {
-          try {
-            Installer.Install(uninstall, silent);
-          } catch (InstallerException) {
-            exitCode = 1;
-          } catch (UninstallerException) {
-            exitCode = 2;
-          }
-        },
-        uninstallOption,
-        silentOption
-      );
+        foreach (string uninstallOption in uninstallOptions) {
+          if (arg.ToLower().StartsWith(uninstallOption)) uninstall = true;
+        }
 
-      await rootCommand.InvokeAsync(args);
+        foreach (string silentOption in silentOptions) {
+          if (arg.ToLower().StartsWith(silentOption)) silent = true;
+        }
 
-      return exitCode;
+        foreach (string helpOption in helpOptions) {
+          if (arg.ToLower().StartsWith(helpOption)) help = true;
+        }
+      }
+
+      if (!install && !uninstall) install = true;
+
+      if (help) {
+        Console.Error.WriteLine(
+          "Description:\r\n" +
+          $"  {DisplayName} installer.\r\n" +
+          "\r\n" +
+          "Usage:\r\n" +
+          $"  {InstallerCommand} [options]\r\n" +
+          "\r\n" +
+          "Options:\r\n" +
+          $"  {installOptions[0]}\tInstalls {DisplayName} (default).\r\n" +
+          $"  {uninstallOptions[0]}\tUninstalls {DisplayName}.\r\n" +
+          $"  {silentOptions[0]}\tProduce no output during installation/uninstallation.\r\n" +
+          $"  {helpOptions[0]}\tShow help and usage information."
+        );
+
+        return 1;
+      }
+
+      if (install && uninstall) {
+        if (!silent) Console.Error.WriteLine($"Cannot specify both {installOptions[0]} and {uninstallOptions[0]}");
+
+        return 2;
+      }
+
+      try {
+        Installer.Install(uninstall: uninstall, silent: silent);
+      } catch (InstallerException) {
+        return 3;
+      } catch (UninstallerException) {
+        return 4;
+      }
+
+      return 0;
     }
   }
 }
