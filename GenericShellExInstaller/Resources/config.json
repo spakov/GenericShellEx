@@ -1,0 +1,22 @@
+{
+  "types": {
+    "*": {
+      "title": "Edit with Notepad",
+      "icon": "%SYSTEMROOT%\\System32\\notepad.exe,0",
+      "toolTip": "Edit with Notepad",
+      "command": "notepad %*"
+    },
+    "Directory": {
+      "title": "Open Windows Terminal here",
+      "icon": "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\wt.exe,0",
+      "toolTip": "Open Windows Terminal here",
+      "command": "wt"
+    },
+    "Directory\\Background": {
+      "title": "Open Windows Terminal here",
+      "icon": "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\wt.exe,0",
+      "toolTip": "Open Windows Terminal here",
+      "command": "wt"
+    }
+  }
+}

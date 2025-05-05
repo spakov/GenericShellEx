@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -8,6 +7,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FullTrustStub", "FullTrustStub\FullTrustStub.vcxproj", "{6D4D3762-79BC-44C2-93B7-596488323DF6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenericShellEx", "GenericShellEx\GenericShellEx.vcxproj", "{84E438F3-CC1D-4697-BAFF-43F032AF8483}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericShellExInstaller", "GenericShellExInstaller\GenericShellExInstaller.csproj", "{55C01188-94AB-4F92-B195-4FE2C981BBBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +21,8 @@ Global
 		{6D4D3762-79BC-44C2-93B7-596488323DF6}.Release|x64.Build.0 = Release|x64
 		{84E438F3-CC1D-4697-BAFF-43F032AF8483}.Release|x64.ActiveCfg = Release|x64
 		{84E438F3-CC1D-4697-BAFF-43F032AF8483}.Release|x64.Build.0 = Release|x64
+		{55C01188-94AB-4F92-B195-4FE2C981BBBE}.Release|x64.ActiveCfg = Release|x64
+		{55C01188-94AB-4F92-B195-4FE2C981BBBE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

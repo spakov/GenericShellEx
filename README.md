@@ -133,6 +133,42 @@ Windows 10 as well, though there's no reason to do so since there is no Windows
 `GenericShellExPackage.wapproj` to do so.
 
 ### Installation
+An installer is available at
+[Releases](https://github.com/spakov/GenericShellEx/releases), or if you'd
+prefer to install manually, skip to the next section.
+
+`GenericShellExInstaller.exe` is a command-line installer that should be run
+with administrative privileges. It includes an example `config.json` (but won't
+overwrite an existing one). The installer adds "Generic Shell Extensions
+Infrastructure" to the Windows Settings Installed Apps (formerly known as Add
+or Remove Programs).
+
+"Generic Shell Extensions" also shows up in the Windows Settings Installed
+Apps--this is the MSIX package itself.
+
+Here's `GenericShellExInstaller.exe --help`:
+
+```
+Description:
+  Generic Shell Extensions Infrastructure installer.
+
+Usage:
+  GenericShellExInstaller [options]
+
+Options:
+  --install       Installs Generic Shell Extensions Infrastructure. [default:
+                  True]
+  --uninstall     Uninstalls Generic Shell Extensions Infrastructure.
+  --silent        Produce no output during installation/uninstallation.
+  --version       Show version information
+  -?, -h, --help  Show help and usage information
+```
+
+### Uninstallation
+Uninstall "Generic Shell Extensions Infrastructure" in the usual manner in
+Windows.
+
+### Manual Installation
 1. Turn on [Windows 11 Developer Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development).
 2. Install the `spakov.cer` certificate into Local Machine\Trusted Root
    Certification Authorities.
@@ -142,7 +178,7 @@ Windows 10 as well, though there's no reason to do so since there is no Windows
 5. Run `Register-GenericShellEx.ps1` to register the DLL.
 6. Right-click something in Explorer.
 
-### Uninstallation
+### Manual Uninstallation
 1. Run `Register-GenericShellEx.ps1 -Unregister` to unregister the DLL.
 2. Delete `%LOCALAPPDATA%\GenericShellEx`, if desired.
 3. Uninstall the MSIX package.
