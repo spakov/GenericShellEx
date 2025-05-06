@@ -7,7 +7,7 @@ namespace GenericShellExInstaller {
     internal const string DisplayName = "Generic Shell Extensions Infrastructure";
     internal const string Publisher = "spakov";
     internal const string Icon = $"{ShortName}.ico";
-    internal const string Version = "1.0.0.3";
+    internal const string Version = "1.0.0.4";
 
     internal const string InstallerCommand = "GenericShellExInstaller";
     internal const string InstallerFile = $"{InstallerCommand}.exe";

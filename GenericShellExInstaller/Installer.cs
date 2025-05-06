@@ -200,7 +200,7 @@ namespace GenericShellExInstaller {
       string stdout;
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersWindowsVersion}",
         RedirectStandardOutput = true,
         UseShellExecute = false
@@ -358,7 +358,7 @@ namespace GenericShellExInstaller {
       string stdout;
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageVersion, Program.ShortName)}",
         RedirectStandardOutput = true,
         UseShellExecute = false
@@ -405,7 +405,7 @@ namespace GenericShellExInstaller {
       }
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersAddAppxPackage} {msixPackageFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -489,7 +489,7 @@ namespace GenericShellExInstaller {
       Process? process;
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -593,7 +593,7 @@ namespace GenericShellExInstaller {
       Process? process;
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {Program.RegisterUnregister} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -621,7 +621,7 @@ namespace GenericShellExInstaller {
       string stdout;
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageFullName, Program.ShortName)}",
         RedirectStandardOutput = true,
         UseShellExecute = false
@@ -646,7 +646,7 @@ namespace GenericShellExInstaller {
       }
 
       processStartInfo = new() {
-        FileName = Program.PowerShellWindows,
+        FileName = Program.PowerShell,
         Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersRemoveAppxPackage} {stdout} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
