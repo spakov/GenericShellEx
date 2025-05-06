@@ -18,6 +18,11 @@ namespace GenericShellExInstaller {
     public static bool Silent { get; private set; }
 
     /// <summary>
+    /// The executable to use to run PowerShell scripts.
+    /// </summary>
+    private static string? PowerShell { get; set; }
+
+    /// <summary>
     /// The application publisher.
     /// </summary>
     private static string? Publisher { get; set; }
@@ -40,12 +45,15 @@ namespace GenericShellExInstaller {
     internal static void Install(bool uninstall, bool silent = false) {
       Silent = silent;
 
-      if (uninstall) {
-        Uninstall();
-      }
-
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
         throw new InstallerException($"{Program.ShortName} can only be installed on Windows.");
+      }
+
+      PowerShell = GetPowerShellExecutable();
+
+      if (uninstall) {
+        // Exits, does not return
+        Uninstall();
       }
 
       if (!((int?) Registry.GetValue(Program.DeveloperModeKey, Program.DeveloperModeName, Program.DeveloperModeDisabledValue)).Equals(Program.DeveloperModeEnabledValue)) {
@@ -87,7 +95,10 @@ namespace GenericShellExInstaller {
     /// <summary>
     /// Uninstalls GenericShellEx.
     /// </summary>
-    private static void Uninstall() {
+    /// <remarks>Exits, does not return.</remarks>
+    /// <param name="failure">Whether to exit with a failure exit code rather
+    /// than a success exit code.</param>
+    private static void Uninstall(bool failure = false) {
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
         throw new UninstallerException($"{Program.ShortName} can only be installed on Windows.");
       }
@@ -102,13 +113,140 @@ namespace GenericShellExInstaller {
       UnregisterDll(@this, workingDirectory, registerScriptResource);
       UninstallMsixPackage();
       UninstallCertificate();
-      UnregisterInstallation();
+      UnregisterInstallationAndDelete();
 
       Directory.Delete(workingDirectory, true);
 
       Log("Uninstallation complete.");
 
-      Environment.Exit(0);
+      Environment.Exit(failure ? 1 : 0);
+    }
+
+    /// <summary>
+    /// Gets the correct PowerShell executable for this system.
+    /// </summary>
+    /// <returns>The name of the PowerShell executable.</returns>
+    /// <exception cref="InstallerException"></exception>
+    private static string GetPowerShellExecutable() {
+      ProcessStartInfo processStartInfo;
+      Process? process;
+
+      // Run this in the background
+      processStartInfo = new() {
+        FileName = Environment.ExpandEnvironmentVariables(Program.Comspec),
+        Arguments = $"{Program.CompsecArgs} {Program.CompsecArgsPowerShell}",
+        UseShellExecute = false
+      };
+
+      process = Process.Start(processStartInfo);
+
+      if (process is null) {
+        throw new InstallerException($"Could not run {Program.CompsecArgsPowerShell} in %COMSPEC%");
+      }
+
+      process.WaitForExit();
+
+      return process.ExitCode.Equals(0)
+        ? Program.PowerShellWindows
+        : Program.PowerShell;
+    }
+
+    /// <summary>
+    /// Extracts and writes the MSIX package to a file from an embedded
+    /// resource.
+    /// </summary>
+    /// <param name="this">This assembly.</param>
+    /// <param name="workingDirectory">The working directory.</param>
+    /// <param name="msixPackageResource">The name of the resource to
+    /// extract.</param>
+    /// <returns>The name of the extracted resource.</returns>
+    /// <exception cref="InstallerException"></exception>
+    private static string WriteMsixPackage(Assembly @this, string workingDirectory, string msixPackageResource) {
+      string msixPackageFile;
+
+      StreamReader resourceReader;
+
+      try {
+        using (resourceReader = new(@this.GetManifestResourceStream(msixPackageResource)!)) {
+          msixPackageFile = $"{workingDirectory}\\{Program.MsixPackageName}";
+
+          using (FileStream msixStream = File.Create(msixPackageFile)) {
+            resourceReader.BaseStream.CopyTo(msixStream);
+          }
+        }
+      } catch (Exception e) {
+        throw new InstallerException($"Unable to extract embedded {Program.MsixPackageName} resource", e);
+      }
+
+      return msixPackageFile;
+    }
+
+    /// <summary>
+    /// Extracts the MSIX package and checks the version of Windows to make
+    /// sure the MSIX package can be installed.
+    /// </summary>
+    /// <param name="workingDirectory">The working directory.</param>
+    /// <param name="msixPackageFile">The MSIX package file.</param>
+    /// <exception cref="InstallerException"></exception>
+    private static void ExtractMsixPackageAndCheckWindowsVersion(string workingDirectory, string msixPackageFile) {
+      string msixPackageExtractedPath = $"{workingDirectory}\\{Program.MsixPackage}";
+      string msixPackageExtractedManifestPath = $"{msixPackageExtractedPath}\\{Program.MsixPackageManifest}";
+
+      // Use a rather convoluted and slow method to get the version of Windows
+      // since Environment.OSVersion.Version lies in .NET Framework
+
+      ProcessStartInfo processStartInfo;
+      Process? process;
+      string stdout;
+
+      processStartInfo = new() {
+        FileName = Program.PowerShellWindows,
+        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersWindowsVersion}",
+        RedirectStandardOutput = true,
+        UseShellExecute = false
+      };
+
+      process = Process.Start(processStartInfo);
+
+      if (process is null) {
+        throw new InstallerException($"Could not run {Program.PowerShellParametersWindowsVersion} in PowerShell");
+      }
+
+      stdout = process.StandardOutput.ReadToEnd().Trim();
+
+      process.WaitForExit();
+
+      if (!process.ExitCode.Equals(0)) {
+        throw new InstallerException($"{Program.PowerShellParametersWindowsVersion} failed");
+      }
+
+      Version osVersion;
+
+      try {
+        osVersion = new(stdout);
+      } catch (Exception e) {
+        throw new InstallerException($"Unable to obtain Windows version", e);
+      }
+
+      try {
+        ZipFile.ExtractToDirectory(msixPackageFile, msixPackageExtractedPath);
+
+        XmlDocument xmlDocument = new();
+        xmlDocument.Load(msixPackageExtractedManifestPath);
+
+        XmlNode targetDeviceFamily = xmlDocument.DocumentElement![Program.MsixPackageManifestDependencies]![Program.MsixPackageManifestDependenciesTargetDeviceFamily]!;
+
+        string _minVersion = targetDeviceFamily.Attributes![Program.MsixPackageManifestDependenciesTargetDeviceFamilyMinVersion]!.InnerText;
+        Version version = new(_minVersion);
+
+        if (osVersion < version) {
+          throw new InstallerException($"{Program.ShortName} requires Windows version {version} and Windows is only version {Environment.OSVersion.Version}");
+        }
+      } catch (Exception e) {
+        throw new InstallerException($"Unable to validate Windows version", e);
+      }
+
+      Log("Windows version is OK");
     }
 
     /// <summary>
@@ -162,104 +300,6 @@ namespace GenericShellExInstaller {
       }
 
       return publisher;
-    }
-
-    /// <summary>
-    /// Extracts and writes the MSIX package to a file from an embedded
-    /// resource.
-    /// </summary>
-    /// <param name="this">This assembly.</param>
-    /// <param name="workingDirectory">The working directory.</param>
-    /// <param name="msixPackageResource">The name of the resource to
-    /// extract.</param>
-    /// <returns>The name of the extracted resource.</returns>
-    /// <exception cref="InstallerException"></exception>
-    private static string WriteMsixPackage(Assembly @this, string workingDirectory, string msixPackageResource) {
-      string msixPackageFile;
-
-      StreamReader resourceReader;
-
-      try {
-        using (resourceReader = new(@this.GetManifestResourceStream(msixPackageResource)!)) {
-          msixPackageFile = $"{workingDirectory}\\{Program.MsixPackageName}";
-
-          using (FileStream msixStream = File.Create(msixPackageFile)) {
-            resourceReader.BaseStream.CopyTo(msixStream);
-          }
-        }
-      } catch (Exception e) {
-        throw new InstallerException($"Unable to extract embedded {Program.MsixPackageName} resource", e);
-      }
-
-      return msixPackageFile;
-    }
-
-    /// <summary>
-    /// Extracts the MSIX package and checks the version of Windows to make
-    /// sure the MSIX package can be installed.
-    /// </summary>
-    /// <param name="workingDirectory">The working directory.</param>
-    /// <param name="msixPackageFile">The MSIX package file.</param>
-    /// <exception cref="InstallerException"></exception>
-    private static void ExtractMsixPackageAndCheckWindowsVersion(string workingDirectory, string msixPackageFile) {
-      string msixPackageExtractedPath = $"{workingDirectory}\\{Program.MsixPackage}";
-      string msixPackageExtractedManifestPath = $"{msixPackageExtractedPath}\\{Program.MsixPackageManifest}";
-
-      // Use a rather convoluted and slow method to get the version of Windows
-      // since Environment.OSVersion.Version lies in .NET Framework
-
-      ProcessStartInfo processStartInfo;
-      Process? process;
-      string stdout;
-
-      processStartInfo = new() {
-        FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersWindowsVersion}",
-        RedirectStandardOutput = true,
-        UseShellExecute = false
-      };
-
-      process = Process.Start(processStartInfo);
-
-      if (process is null) {
-        throw new InstallerException($"Could not run {Program.PowerShellParametersWindowsVersion} in PowerShell");
-      }
-
-      stdout = process.StandardOutput.ReadToEnd();
-
-      process.WaitForExit();
-
-      if (!process.ExitCode.Equals(0)) {
-        throw new InstallerException($"{Program.PowerShellParametersWindowsVersion} failed");
-      }
-
-      Version osVersion;
-
-      try {
-        osVersion = new(stdout);
-      } catch (Exception e) {
-        throw new InstallerException($"Unable to obtain Windows version", e);
-      }
-
-      try {
-        ZipFile.ExtractToDirectory(msixPackageFile, msixPackageExtractedPath);
-
-        XmlDocument xmlDocument = new();
-        xmlDocument.Load(msixPackageExtractedManifestPath);
-
-        XmlNode targetDeviceFamily = xmlDocument.DocumentElement![Program.MsixPackageManifestDependencies]![Program.MsixPackageManifestDependenciesTargetDeviceFamily]!;
-
-        string _minVersion = targetDeviceFamily.Attributes![Program.MsixPackageManifestDependenciesTargetDeviceFamilyMinVersion]!.InnerText;
-        Version version = new(_minVersion);
-
-        if (osVersion < version) {
-          throw new InstallerException($"{Program.ShortName} requires Windows version {version} and Windows is only version {Environment.OSVersion.Version}");
-        }
-      } catch (Exception e) {
-        throw new InstallerException($"Unable to validate Windows version", e);
-      }
-
-      Log("Windows version is OK");
     }
 
     /// <summary>
@@ -318,8 +358,8 @@ namespace GenericShellExInstaller {
       string stdout;
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageVersion, Program.ShortName)} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        FileName = Program.PowerShellWindows,
+        Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageVersion, Program.ShortName)}",
         RedirectStandardOutput = true,
         UseShellExecute = false
       };
@@ -330,7 +370,7 @@ namespace GenericShellExInstaller {
         throw new InstallerException($"Could not run {Program.PowerShellParametersGetAppxPackageVersion} in PowerShell");
       }
 
-      stdout = process.StandardOutput.ReadToEnd();
+      stdout = process.StandardOutput.ReadToEnd().Trim();
 
       process.WaitForExit();
 
@@ -365,7 +405,7 @@ namespace GenericShellExInstaller {
       }
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
+        FileName = Program.PowerShellWindows,
         Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersAddAppxPackage} {msixPackageFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -449,7 +489,7 @@ namespace GenericShellExInstaller {
       Process? process;
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
+        FileName = Program.PowerShellWindows,
         Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -553,7 +593,7 @@ namespace GenericShellExInstaller {
       Process? process;
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
+        FileName = Program.PowerShellWindows,
         Arguments = $"{Program.PowerShellParameters} {registerScriptFile} {Program.RegisterUnregister} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -581,8 +621,8 @@ namespace GenericShellExInstaller {
       string stdout;
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
-        Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageFullName, Program.ShortName)} {(Silent ? Program.PowerShellSilent : string.Empty)}",
+        FileName = Program.PowerShellWindows,
+        Arguments = $"{Program.PowerShellParameters} {string.Format(Program.PowerShellParametersGetAppxPackageFullName, Program.ShortName)}",
         RedirectStandardOutput = true,
         UseShellExecute = false
       };
@@ -593,7 +633,7 @@ namespace GenericShellExInstaller {
         throw new UninstallerException($"Could not run {Program.PowerShellParametersGetAppxPackageFullName} in PowerShell");
       }
 
-      stdout = process.StandardOutput.ReadToEnd();
+      stdout = process.StandardOutput.ReadToEnd().Trim();
 
       process.WaitForExit();
 
@@ -606,7 +646,7 @@ namespace GenericShellExInstaller {
       }
 
       processStartInfo = new() {
-        FileName = Program.PowerShell,
+        FileName = Program.PowerShellWindows,
         Arguments = $"{Program.PowerShellParameters} {Program.PowerShellParametersRemoveAppxPackage} {stdout} {(Silent ? Program.PowerShellSilent : string.Empty)}",
         UseShellExecute = false
       };
@@ -654,10 +694,14 @@ namespace GenericShellExInstaller {
     }
 
     /// <summary>
-    /// Unregisters the installation in Windows.
+    /// Unregisters the installation in Windows and deletes the installer
+    /// directory.
     /// </summary>
+    /// <remarks>
+    /// Leaves two seconds before %COMSPEC% deletes the installer
+    /// directory.</remarks>
     /// <exception cref="InstallerException"></exception>
-    private static void UnregisterInstallation() {
+    private static void UnregisterInstallationAndDelete() {
       try {
         RegistryKey softwareRegistryKey = Registry.LocalMachine.OpenSubKey(Program.RegistrySoftwareKey, writable: true)!;
 
@@ -667,9 +711,10 @@ namespace GenericShellExInstaller {
         throw new UninstallerException($"Unable to unregister installation in registry", e);
       }
 
+      // Run this in the background
       ProcessStartInfo processStartInfo = new() {
-        FileName = Environment.ExpandEnvironmentVariables(Program.SelfDeleteComspec),
-        Arguments = Program.SelfDeleteComspecArgs,
+        FileName = Environment.ExpandEnvironmentVariables(Program.Comspec),
+        Arguments = $"{Program.CompsecArgs} {Program.ComspecArgsSelfDelete}",
         UseShellExecute = true,
         WindowStyle = ProcessWindowStyle.Hidden
       };
