@@ -23,7 +23,7 @@ namespace GenericShellExInstaller {
         Console.Error.WriteLine("Aborted installation!");
       }
 
-      Installer.Install(uninstall: true, Installer.Silent);
+      Installer.Install(uninstall: true, silent: Installer.Silent, failure: true);
     }
   }
 }

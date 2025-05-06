@@ -41,8 +41,10 @@ namespace GenericShellExInstaller {
     /// <param name="uninstall">Whether to uninstall.</param>
     /// <param name="silent"><inheritdoc cref="Silent"
     /// path="/summary"/></param>
+    /// <param name="failure">If uninstalling, whether to exit with a failure
+    /// exit code rather than a success exit code.</param>
     /// <exception cref="InstallerException"></exception>
-    internal static void Install(bool uninstall, bool silent = false) {
+    internal static void Install(bool uninstall, bool silent = false, bool failure = false) {
       Silent = silent;
 
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
@@ -53,7 +55,7 @@ namespace GenericShellExInstaller {
 
       if (uninstall) {
         // Exits, does not return
-        Uninstall();
+        Uninstall(failure);
       }
 
       if (!((int?) Registry.GetValue(Program.DeveloperModeKey, Program.DeveloperModeName, Program.DeveloperModeDisabledValue)).Equals(Program.DeveloperModeEnabledValue)) {
