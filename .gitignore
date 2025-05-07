@@ -7,7 +7,7 @@
 **/bin/
 **/obj/
 **/x64/
-GenericShellExInstaller/Resources/*.cer
-GenericShellExInstaller/Resources/*.msix
-GenericShellExInstaller/Resources/*.ps1
+GenericShellExInfrastructureInstaller/Resources/*.cer
+GenericShellExInfrastructureInstaller/Resources/*.msix
+GenericShellExInfrastructureInstaller/Resources/*.ps1
 packages/

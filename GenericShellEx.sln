@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FullTrustStub", "FullTrustS
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GenericShellEx", "GenericShellEx\GenericShellEx.vcxproj", "{84E438F3-CC1D-4697-BAFF-43F032AF8483}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericShellExInstaller", "GenericShellExInstaller\GenericShellExInstaller.csproj", "{41C09894-79D8-448F-96E4-9EB59A8ED4D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericShellExInfrastructureInstaller", "GenericShellExInfrastructureInstaller\GenericShellExInfrastructureInstaller.csproj", "{41C09894-79D8-448F-96E4-9EB59A8ED4D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{84E438F3-CC1D-4697-BAFF-43F032AF8483}.Debug|x64.Build.0 = Release|x64
 		{84E438F3-CC1D-4697-BAFF-43F032AF8483}.Release|x64.ActiveCfg = Release|x64
 		{84E438F3-CC1D-4697-BAFF-43F032AF8483}.Release|x64.Build.0 = Release|x64
-		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Debug|x64.ActiveCfg = Debug|x86
-		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Debug|x64.Build.0 = Debug|x86
-		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Release|x64.ActiveCfg = Debug|x86
-		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Release|x64.Build.0 = Debug|x86
+		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Release|x64.ActiveCfg = Release|Any CPU
+		{41C09894-79D8-448F-96E4-9EB59A8ED4D8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
