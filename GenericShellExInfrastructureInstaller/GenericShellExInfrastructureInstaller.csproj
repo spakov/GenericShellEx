@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition="$(Configuration) == ''">Debug</Configuration>
+    <Platform Condition="$(Platform) == ''">AnyCPU</Platform>
+    <ProjectGuid>{41C09894-79D8-448F-96E4-9EB59A8ED4D8}</ProjectGuid>
+    <LangVersion>10</LangVersion>
+    <OutputType>Exe</OutputType>
+    <StartupObject>GenericShellExInfrastructureInstaller.Installer</StartupObject>
+    <RootNamespace>GenericShellExInfrastructureInstaller</RootNamespace>
+    <AssemblyName>GenericShellExInfrastructureInstaller</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+    <OutputPath>bin\$(Configuration)</OutputPath>
+    <ApplicationIcon>Resources\GenericShellExInfrastructure.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>$(OutputPath)\$(AssemblyName).xml</DocumentationFile>
+    <Optimize>false</Optimize>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <Reference Include="CsInstall">
+      <HintPath>..\..\CsInstall\CsInstall\bin\Debug\CsInstall.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Reference Include="CsInstall">
+      <HintPath>..\..\CsInstall\CsInstall\bin\Release\CsInstall.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GenericShellExInfrastructure.cs" />
+    <Compile Include="Installer.cs" />
+    <Compile Include="InstallerTasks\CheckMsixPackageCompatibility.cs" />
+    <Compile Include="InstallerTasks\RegisterDll.cs" />
+    <Compile Include="InstallerTasks\WriteExampleConfigFile.cs" />
+    <Compile Include="InstallerTasks\InstallMsixPackage.cs" />
+    <Compile Include="InstallerTasks\InstallCertificate.cs" />
+    <Compile Include="InstallerTasks\ExtractMsixPackage.cs" />
+    <Compile Include="UninstallerTasks\UninstallCertificate.cs" />
+    <Compile Include="UninstallerTasks\UninstallMsixPackage.cs" />
+    <Compile Include="UninstallerTasks\UnregisterDll.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\config.json" />
+    <EmbeddedResource Include="Resources\GenericShellExInfrastructure.ico" />
+    <EmbeddedResource Include="Resources\GenericShellExPackage.msix" />
+    <EmbeddedResource Include="Resources\Register-GenericShellEx.ps1" />
+    <EmbeddedResource Include="Resources\spakov.cer" />
+    <None Include="Resources\7zS2con.sfx" />
+  </ItemGroup>
+  <Target Name="CopyResources" BeforeTargets="BeforeBuild">
+    <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=x64" />
+    <Copy SourceFiles="..\GenericShellExPackage\GenericShellExPackage.msix" DestinationFolder="Resources\" />
+    <Copy SourceFiles="..\Register-GenericShellEx.ps1" DestinationFolder="Resources\" />
+    <Copy SourceFiles="..\spakov.cer" DestinationFolder="Resources\" />
+  </Target>
+  <PropertyGroup>
+    <Installer>$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).exe</Installer>
+    <CsInstall>$(MSBuildProjectDirectory)\$(OutputPath)\CsInstall.dll</CsInstall>
+    <SevenZipOutput>$(OutputPath)\publish\$(AssemblyName)</SevenZipOutput>
+    <SevenZipOutputArchive>$(SevenZipOutput).7z</SevenZipOutputArchive>
+    <SevenZipOutputExe>$(SevenZipOutput).exe</SevenZipOutputExe>
+  </PropertyGroup>
+  <Target Name="BuildSfx" Inputs="$(Installer);$(CsInstall)" Outputs="$(SevenZipOutputExe)" AfterTargets="AfterBuild">
+    <PropertyGroup>
+      <SevenZip>%PROGRAMFILES%\7-Zip\7z.exe</SevenZip>
+      <SevenZipOptions>-m0=lzma2 -mx=9</SevenZipOptions>
+      <SevenZipSfx>Resources\7zS2con.sfx</SevenZipSfx>
+    </PropertyGroup>
+    <MakeDir Directories="$(OutputPath)\publish" />
+    <Delete Files="$(SevenZipOutputArchive)" />
+    <Exec Command="&quot;$(SevenZip)&quot; a $(SevenZipOptions) &quot;$(SevenZipOutputArchive)&quot; &quot;$(Installer)&quot; &quot;$(CsInstall)&quot;" />
+    <Exec Command="copy /b &quot;$(SevenZipSfx)&quot; + &quot;$(SevenZipOutputArchive)&quot; &quot;$(SevenZipOutputExe)&quot;" />
+  </Target>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\7z-sfx-config.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,16 +1,15 @@
-﻿using GenericShellExInstaller;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle(Program.DisplayName)]
+[assembly: AssemblyTitle(GenericShellExInfrastructureInstaller.Installer.DisplayName)]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct(Program.ShortName)]
-[assembly: AssemblyCopyright(Program.Publisher)]
+[assembly: AssemblyProduct(GenericShellExInfrastructureInstaller.Installer.ShortName)]
+[assembly: AssemblyCopyright(GenericShellExInfrastructureInstaller.Installer.Publisher)]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +28,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion(Program.Version)]
-[assembly: AssemblyFileVersion(Program.Version)]
+[assembly: AssemblyVersion(GenericShellExInfrastructureInstaller.Installer.Version)]
+[assembly: AssemblyFileVersion(GenericShellExInfrastructureInstaller.Installer.Version)]
