@@ -98,10 +98,12 @@ created `FullTrustStub.exe`, which literally does nothing. MSIX packages must
 also be signed (unless installed as described in [Create an unsigned MSIX
 package](https://learn.microsoft.com/en-us/windows/msix/package/unsigned-package)).
 I generated a self-signed code signing certificate using
-`New-SelfSignedCertificate -Subject "CN=spakov" -Type CodeSigningCert
--CertStoreLocation "Cert:\CurrentUser\My"` and sign the package in
-`GenericShellExPackage.wapproj` in the `Package` target using the certificate's
-thumbprint.
+`New-SelfSignedCertificate -Type Custom -KeyUsage DigitalSignature
+-KeyAlgorithm RSA -KeyLength 2048 -CertStoreLocation Cert:\CurrentUser\My
+-TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+-Subject "CN=spakov" -FriendlyName "Generic Shell Extensions"` and sign the
+package in `GenericShellExPackage.wapproj` in the `Package` target using the
+certificate's thumbprint.
 
 If you want more than one context menu entry, generate new CLSIDs, build a new
 `GenericShellEx.dll` that uses those CLSIDs, and package into another MSIX
@@ -163,21 +165,27 @@ Options:
   --help        Show help and usage information.
 ```
 
-Note that the installer will only install if [Windows 11 Developer
-Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development)
-is enabled. This is because the MSIX package is self-signed, since I don't have
-a code-signing certificate.
+Note that the installer installs the current certificate into Local
+Machine\Trusted People. This is because the MSIX package is self-signed, since
+I don't have a code-signing certificate. The installer also removes all
+certificates identified below during uninstall.
 
 ### Uninstallation
 Uninstall "Generic Shell Extensions Infrastructure" in the usual manner in
 Windows.
 
 ### Manual Installation
-1. Turn on [Windows 11 Developer Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development).
-2. Install the `spakov.cer` certificate into Local Machine\Trusted Root
-   Certification Authorities.
+1. Turn on [Windows 11 Developer
+   Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development)
+   if not signing the MSIX package and not installing using `Add-AppxPackage`.
+2. If signing, generate a certificate using, e.g., `New-SelfSignedCertificate
+   -Type Custom -KeyUsage DigitalSignature -KeyAlgorithm RSA -KeyLength 2048
+   -CertStoreLocation Cert:\CurrentUser\My -TextExtension
+   @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") -Subject
+   "CN=spakov" -FriendlyName "Generic Shell Extensions"`, and install the
+   certificate into Local Machine\Trusted People.
 3. Install the MSIX package. (This can either be done by double-clicking it or
-   via `Add-AppxPackage`.)
+   via `Add-AppxPackage`, using `-AllowUnsigned`, if applicable.)
 4. Build your `config.json` in `%LOCALAPPDATA%\GenericShellEx`.
 5. Run `Register-GenericShellEx.ps1` to register the DLL.
 6. Right-click something in Explorer.
@@ -186,9 +194,7 @@ Windows.
 1. Run `Register-GenericShellEx.ps1 -Unregister` to unregister the DLL.
 2. Delete `%LOCALAPPDATA%\GenericShellEx`, if desired.
 3. Uninstall the MSIX package.
-4. Delete the certificate from Local Machine\Trusted Root Certification
-   Authorities.
-5. Turn off Windows 11 Developer Mode.
+4. If signing, delete the certificate from Local Machine\Trusted People.
 
 ## Building
 Required components:
@@ -208,6 +214,43 @@ Required components:
   - Needed to package `GenericShellExInfrastructureInstaller`
 
 ## Certificate Information
+Certificates that have been used by GenericShellEx are listed below. These are
+located in
+[certificates](https://github.com/spakov/GenericShellEx/tree/main/certificates).
+
+### `BC4D07566F276942B4377AE213F1D49BCEB0ED77` (current)
+```
+Get-ChildItem Cert:\LocalMachine\TrustedPeople\BC4D07566F276942B4377AE213F1D49BCEB0ED77 | Select-Object -Property * -ExcludeProperty "PS*" | Out-String
+
+EnhancedKeyUsageList     : {Code Signing (1.3.6.1.5.5.7.3.3)}
+DnsNameList              : {spakov}
+SendAsTrustedIssuer      : False
+EnrollmentPolicyEndPoint : Microsoft.CertificateServices.Commands.EnrollmentEndPointProperty
+EnrollmentServerEndPoint : Microsoft.CertificateServices.Commands.EnrollmentEndPointProperty
+PolicyId                 :
+Archived                 : False
+Extensions               : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid}
+FriendlyName             :
+HasPrivateKey            : False
+PrivateKey               :
+IssuerName               : System.Security.Cryptography.X509Certificates.X500DistinguishedName
+NotAfter                 : 08-May-2026 07:45:27
+NotBefore                : 08-May-2025 07:25:27
+PublicKey                : System.Security.Cryptography.X509Certificates.PublicKey
+RawData                  : {48, 130, 3, 0…}
+RawDataMemory            : System.ReadOnlyMemory<Byte>[772]
+SerialNumber             : 2953D33C7A967CA2469B86104522C798
+SignatureAlgorithm       : System.Security.Cryptography.Oid
+SubjectName              : System.Security.Cryptography.X509Certificates.X500DistinguishedName
+Thumbprint               : BC4D07566F276942B4377AE213F1D49BCEB0ED77
+Version                  : 3
+Handle                   : 2100286224768
+Issuer                   : CN=spakov
+Subject                  : CN=spakov
+SerialNumberBytes        : System.ReadOnlyMemory<Byte>[16]
+```
+
+### `DDAF333D25B8A30F9AB9CF9E655F5244180AB142`
 ```
 Get-ChildItem Cert:\LocalMachine\Root\DDAF333D25B8A30F9AB9CF9E655F5244180AB142 | Select-Object -Property * -ExcludeProperty "PS*" | Out-String
 

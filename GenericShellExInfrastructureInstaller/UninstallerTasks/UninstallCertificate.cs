@@ -34,7 +34,7 @@ namespace GenericShellExInfrastructureInstaller {
     /// <exception cref="UninstallerException"></exception>
     public void Uninstall() {
       try {
-        X509Store x509Store = new(StoreName.Root, StoreLocation.LocalMachine);
+        X509Store x509Store = new(StoreName.TrustedPeople, StoreLocation.LocalMachine);
         x509Store.Open(OpenFlags.ReadWrite);
 
         List<X509Certificate2> certificatesToRemove = new();

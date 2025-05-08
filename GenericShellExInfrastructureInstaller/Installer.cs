@@ -6,7 +6,7 @@
     internal const string ShortName = "GenericShellExInfrastructure";
     internal const string DisplayName = "Generic Shell Extensions Infrastructure";
     internal const string Publisher = "spakov";
-    internal const string Version = "1.0.0.9";
+    internal const string Version = "1.0.0.10";
     internal const string Url = "https://github.com/spakov/GenericShellEx";
     internal const string Icon = $"{ShortName}.ico";
     internal const string InstallLocation = $@"%PROGRAMFILES%\{ShortName}";

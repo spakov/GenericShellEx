@@ -34,7 +34,7 @@ namespace GenericShellExInfrastructureInstaller {
     /// <exception cref="InstallerException"></exception>
     public void Checks() {
       try {
-        x509Store = new(StoreName.Root, StoreLocation.LocalMachine);
+        x509Store = new(StoreName.TrustedPeople, StoreLocation.LocalMachine);
         x509Store.Open(OpenFlags.ReadWrite);
 
         certificate = new(
