@@ -65,6 +65,9 @@
     <Compile Include="UninstallerTasks\UnregisterDll.cs" />
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
+  <PropertyGroup>
+    <CertificateThumbprint>bc4d07566f276942b4377ae213f1d49bceb0ed77</CertificateThumbprint>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="app.manifest" />
@@ -73,14 +76,14 @@
     <EmbeddedResource Include="Resources\GenericShellExInfrastructure.ico" />
     <EmbeddedResource Include="Resources\GenericShellExPackage.msix" />
     <EmbeddedResource Include="Resources\Register-GenericShellEx.ps1" />
-    <EmbeddedResource Include="Resources\spakov.cer" />
+    <EmbeddedResource Include="Resources\$(CertificateThumbprint).cer" />
     <None Include="Resources\7zS2con.sfx" />
   </ItemGroup>
   <Target Name="CopyResources" BeforeTargets="BeforeBuild">
     <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=x64" />
     <Copy SourceFiles="..\GenericShellExPackage\GenericShellExPackage.msix" DestinationFolder="Resources\" />
     <Copy SourceFiles="..\Register-GenericShellEx.ps1" DestinationFolder="Resources\" />
-    <Copy SourceFiles="..\spakov.cer" DestinationFolder="Resources\" />
+    <Copy SourceFiles="..\certificates\$(CertificateThumbprint).cer" DestinationFolder="Resources\" />
   </Target>
   <PropertyGroup>
     <Installer>$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).exe</Installer>

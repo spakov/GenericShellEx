@@ -1,5 +1,4 @@
 ﻿using CsInstall;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -7,11 +6,6 @@ using System.Runtime.InteropServices;
 #nullable enable
 namespace GenericShellExInfrastructureInstaller {
   internal class GenericShellExInfrastructure : Definition {
-    private const string developerModeKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock";
-    private const string developerModeName = "AllowDevelopmentWithoutDevLicense";
-    private const int developerModeDisabledValue = 0;
-    private const int developerModeEnabledValue = 1;
-
     /// <summary>
     /// The MSIX package name.
     /// </summary>
@@ -25,7 +19,7 @@ namespace GenericShellExInfrastructureInstaller {
     /// <summary>
     /// The certificate file.
     /// </summary>
-    internal static string CertificateFile { get; } = "spakov.cer";
+    internal static string CertificateFile { get; } = "bc4d07566f276942b4377ae213f1d49bceb0ed77.cer";
 
     /// <summary>
     /// The path to the config file.
@@ -52,6 +46,7 @@ namespace GenericShellExInfrastructureInstaller {
     /// </summary>
     /// <remarks>Ensure all entries are lowercased.</remarks>
     internal static readonly HashSet<string> KnownCertificateThumbprints = new() {
+      "bc4d07566f276942b4377ae213f1d49bceb0ed77",
       "ddaf333d25b8a30f9ab9cf9e655f5244180ab142"
     };
 
@@ -93,14 +88,7 @@ namespace GenericShellExInfrastructureInstaller {
       return true;
     }
 
-    public override void InstallChecks() {
-      if (!((int?) Registry.GetValue(developerModeKey, developerModeName, developerModeDisabledValue)).Equals(developerModeEnabledValue)) {
-        throw new InstallerException(
-          $"Windows Developer Mode must be enabled to install {Installer.ShortName}. " +
-          "See https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development."
-        );
-      }
-    }
+    public override void InstallChecks() { }
 
     public override void UninstallChecks() { }
   }

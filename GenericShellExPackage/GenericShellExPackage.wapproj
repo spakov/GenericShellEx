@@ -48,7 +48,7 @@
   </ItemGroup>
   <Target Name="Package" AfterTargets="Build" Inputs="@(PackageInputs)" Outputs="$(MsixPackage)" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <PropertyGroup>
-      <CertificateThumbprint>DDAF333D25B8A30F9AB9CF9E655F5244180AB142</CertificateThumbprint>
+      <CertificateThumbprint>bc4d07566f276942b4377ae213f1d49bceb0ed77</CertificateThumbprint>
       <WindowsSdkVersion>10.0.22621.0</WindowsSdkVersion>
       <WindowsSdkPath>C:\Program Files (x86)\Windows Kits\10\bin\$(WindowsSdkVersion)\$(Platform)</WindowsSdkPath>
     </PropertyGroup>
