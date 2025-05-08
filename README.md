@@ -123,7 +123,7 @@ All I wanted was a way to launch nvim with a single right click. This achieves
 that.
 
 ## Releases
-A prebuilt x64 MSIX package is available at [Releases](https://github.com/spakov/GenericShellEx/releases).
+A prebuilt x64 MSIX package and an installer are available at [Releases](https://github.com/spakov/GenericShellEx/releases).
 
 ## Requirements
 As configured, this will work on Windows 11 21H2 and newer. This should work on
@@ -144,7 +144,7 @@ Infrastructure" to the Windows Settings Installed Apps (formerly known as Add
 or Remove Programs).
 
 "Generic Shell Extensions" also shows up in the Windows Settings Installed
-Apps--this is the MSIX package itself.
+Apps—this is the MSIX package itself.
 
 Here's `GenericShellExInstaller.exe --help`:
 
@@ -153,16 +153,20 @@ Description:
   Generic Shell Extensions Infrastructure installer.
 
 Usage:
-  GenericShellExInstaller [options]
+  GenericShellExInfrastructureInstaller [options]
 
 Options:
-  --install       Installs Generic Shell Extensions Infrastructure. [default:
-                  True]
-  --uninstall     Uninstalls Generic Shell Extensions Infrastructure.
-  --silent        Produce no output during installation/uninstallation.
-  --version       Show version information
-  -?, -h, --help  Show help and usage information
+  --install     Install Generic Shell Extensions Infrastructure (default).
+  --uninstall   Uninstall Generic Shell Extensions Infrastructure.
+  --silent      Produce no output during installation/uninstallation.
+  --version     Print the installer version.
+  --help        Show help and usage information.
 ```
+
+Note that the installer will only install if [Windows 11 Developer
+Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development)
+is enabled. This is because the MSIX package is self-signed, since I don't have
+a code-signing certificate.
 
 ### Uninstallation
 Uninstall "Generic Shell Extensions Infrastructure" in the usual manner in
@@ -173,7 +177,7 @@ Windows.
 2. Install the `spakov.cer` certificate into Local Machine\Trusted Root
    Certification Authorities.
 3. Install the MSIX package. (This can either be done by double-clicking it or
-   via `Add-AppPackage`.)
+   via `Add-AppxPackage`.)
 4. Build your `config.json` in `%LOCALAPPDATA%\GenericShellEx`.
 5. Run `Register-GenericShellEx.ps1` to register the DLL.
 6. Right-click something in Explorer.
@@ -187,6 +191,50 @@ Windows.
 5. Turn off Windows 11 Developer Mode.
 
 ## Building
-Build `GenericShellExPackage`, which will build `FullTrustStub.exe` and
-`GenericShellEx.dll`, then produce
-`GenericShellExPackage\GenericShellExPackage.msix`.
+Required components:
+- Microsoft Visual Studio
+  - `FullTrustStub` and `GenericShellEx`:
+    - "Desktop Development with C++" workload
+  - `GenericShellExPackage`:
+    - ".NET desktop development" workload
+      - ".NET WinUI app development tools" component
+  - `GenericShellExInfrastructureInstaller`:
+    - ".NET desktop development" workload
+      - ".NET Framework 4.8 SDK" component
+      - ".NET Framework 4.8 targeting pack" component
+- [CsInstall](https://github.com/spakov/CsInstall)
+  - Installer framework needed by `GenericShellExInfrastructureInstaller`
+- 7-Zip
+  - Needed to package `GenericShellExInfrastructureInstaller`
+
+## Certificate Information
+```
+Get-ChildItem Cert:\LocalMachine\Root\DDAF333D25B8A30F9AB9CF9E655F5244180AB142 | Select-Object -Property * -ExcludeProperty "PS*" | Out-String
+
+EnhancedKeyUsageList     : {Code Signing (1.3.6.1.5.5.7.3.3)}
+DnsNameList              : {spakov}
+SendAsTrustedIssuer      : False
+EnrollmentPolicyEndPoint : Microsoft.CertificateServices.Commands.EnrollmentEndPointProperty
+EnrollmentServerEndPoint : Microsoft.CertificateServices.Commands.EnrollmentEndPointProperty
+PolicyId                 :
+Archived                 : False
+Extensions               : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid}
+FriendlyName             :
+HasPrivateKey            : False
+PrivateKey               :
+IssuerName               : System.Security.Cryptography.X509Certificates.X500DistinguishedName
+NotAfter                 : 02-May-2026 13:56:53
+NotBefore                : 02-May-2025 13:36:53
+PublicKey                : System.Security.Cryptography.X509Certificates.PublicKey
+RawData                  : {48, 130, 2, 242…}
+RawDataMemory            : System.ReadOnlyMemory<Byte>[758]
+SerialNumber             : 12944912FBF652824C97E19F79E68381
+SignatureAlgorithm       : System.Security.Cryptography.Oid
+SubjectName              : System.Security.Cryptography.X509Certificates.X500DistinguishedName
+Thumbprint               : DDAF333D25B8A30F9AB9CF9E655F5244180AB142
+Version                  : 3
+Handle                   : 2100289948752
+Issuer                   : CN=spakov
+Subject                  : CN=spakov
+SerialNumberBytes        : System.ReadOnlyMemory<Byte>[16]
+```
