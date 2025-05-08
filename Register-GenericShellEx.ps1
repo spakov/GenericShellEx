@@ -36,7 +36,7 @@ $Handlers = @(
 )
 
 function Get-DllPath {
-  $package = Get-AppxPackage -Name $PackageName
+  $package = Get-AppxPackage -Name $PackageName 2> $null
 
   if (-Not $package) {
     Write-Error "Package '$PackageName' not found."
@@ -55,7 +55,7 @@ function New-Key {
   $Path = [wildcardpattern]::Escape($Path)
   $Name = [wildcardpattern]::Escape($Name)
 
-  if (-Not (Test-Path -Path $(Join-Path -Path $Path -ChildPath $Name))) {
+  if (-Not (Test-Path -Path $(Join-Path -Path $Path -ChildPath $Name 2> $null))) {
     New-Item -Path $Path -Name $Name
   }
 }
@@ -69,10 +69,10 @@ function Set-RegSz {
 
   $Path = [wildcardpattern]::Escape($Path)
 
-  if (-Not (Get-ItemProperty -Path $Path -Name $Name)) {
+  if (-Not (Get-ItemProperty -Path $Path -Name $Name 2> $null)) {
     New-ItemProperty -Path $Path -Name $Name -PropertyType $String -Value $Value
   } else {
-    if ((Get-ItemProperty -Path $Path -Name $Name).$Name -IsNot [string]) {
+    if ((Get-ItemProperty -Path $Path -Name $Name 2> $null).$Name -IsNot [string]) {
       Remove-ItemProperty -Path $Path -Name $Name
       New-ItemProperty -Path $Path -Name $Name -PropertyType $String -Value $Value
     }
@@ -86,7 +86,7 @@ function Remove-Key {
 
   $Path = [wildcardpattern]::Escape($Path)
 
-  if (Test-Path -Path $Path | Out-Null) {
+  if (Test-Path -Path $Path 2> $null) {
     Remove-Item -Path $Path -Recurse
   }
 }
@@ -97,7 +97,7 @@ function Register-Handler {
     [string]$DllPath
   )
 
-  Write-Host "Registering CLSID $($Handler.Clsid) => $($Name -f $Handler.Type)"
+  Write-Verbose "Registering CLSID $($Handler.Clsid) => $($Name -f $Handler.Type)"
 
   $hkcrClsidClsid = $($HKCRClsidClsid -f $Handler.Clsid)
 
@@ -122,7 +122,7 @@ function Unregister-Handler {
     [System.Collections.Hashtable]$Handler
   )
 
-  Write-Host "Unregistering CLSID $($Handler.Clsid) => $($Name -f $Handler.Type)"
+  Write-Verbose "Unregistering CLSID $($Handler.Clsid) => $($Name -f $Handler.Type)"
 
   $hkcrClsidClsid = $($HKCRClsidClsid -f $Handler.Clsid)
   $hkcrGenericShellEx = $($HKCRGenericShellEx -f $Handler.Type)
