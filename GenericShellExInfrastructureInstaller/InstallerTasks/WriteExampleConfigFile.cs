@@ -42,6 +42,8 @@ namespace GenericShellExInfrastructureInstaller {
     /// <exception cref="InstallerException"></exception>
     public void Install() {
       try {
+        Directory.CreateDirectory(GenericShellExInfrastructure.ConfigPath);
+
         Definition.Installer.CopyFile(
           GenericShellExInfrastructure.ConfigFile,
           Path.Combine(GenericShellExInfrastructure.ConfigPath, GenericShellExInfrastructure.ConfigFile)
