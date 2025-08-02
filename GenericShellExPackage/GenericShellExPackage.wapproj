@@ -8,6 +8,10 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup>
     <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge\</WapProjPath>
@@ -37,8 +41,11 @@
   <Target Name="CopyDLL" BeforeTargets="BeforeBuild" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <Copy SourceFiles="..\x64\Release\GenericShellEx.dll" DestinationFolder="$(MSBuildProjectDirectory)" />
   </Target>
+  <Target Name="CopyDLL" BeforeTargets="BeforeBuild" Condition="'$(Configuration)|$(Platform)' == 'Release|ARM64'">
+    <Copy SourceFiles="..\ARM64\Release\GenericShellEx.dll" DestinationFolder="$(MSBuildProjectDirectory)" />
+  </Target>
   <PropertyGroup>
-    <ReleasePath>bin\x64\Release</ReleasePath>
+    <ReleasePath>bin\$(Platform)\$(Configuration)</ReleasePath>
     <MsixPackage>GenericShellExPackage.msix</MsixPackage>
   </PropertyGroup>
   <ItemGroup>
@@ -46,11 +53,11 @@
     <PackageInputs Include="$(ReleasePath)\FullTrustStub\FullTrustStub.exe" />
     <PackageInputs Include="GenericShellEx.dll" />
   </ItemGroup>
-  <Target Name="Package" AfterTargets="Build" Inputs="@(PackageInputs)" Outputs="$(MsixPackage)" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+  <Target Name="Package" AfterTargets="Build" Inputs="@(PackageInputs)" Outputs="$(MsixPackage)">
     <PropertyGroup>
       <CertificateThumbprint>bc4d07566f276942b4377ae213f1d49bceb0ed77</CertificateThumbprint>
       <WindowsSdkVersion>10.0.22621.0</WindowsSdkVersion>
-      <WindowsSdkPath>C:\Program Files (x86)\Windows Kits\10\bin\$(WindowsSdkVersion)\$(Platform)</WindowsSdkPath>
+      <WindowsSdkPath>C:\Program Files (x86)\Windows Kits\10\bin\$(WindowsSdkVersion)\$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</WindowsSdkPath>
     </PropertyGroup>
     <Exec Command="del $(ReleasePath)\FullTrustStub\*.pdb" />
     <Exec Command="del $(ReleasePath)\*.appxrecipe" />

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #nullable enable
 namespace GenericShellExInfrastructureInstaller {
-  internal class GenericShellExInfrastructure : Definition {
+  internal class GenericShellExInfrastructure : IDefinition {
     /// <summary>
     /// The MSIX package name.
     /// </summary>
@@ -50,35 +50,41 @@ namespace GenericShellExInfrastructureInstaller {
       "ddaf333d25b8a30f9ab9cf9e655f5244180ab142"
     };
 
+    public CsInstall.Installer Installer { get; private set; }
+
+    public List<IInstallerTask> InstallerTasks { get; private set; }
+
+    public List<IUninstallerTask> UninstallerTasks { get; private set; }
+
+    public bool UninstallerTasksNeedResources { get; private set; }
+
     /// <summary>
     /// Initializes <see cref="GenericShellExInfrastructure"/>.
     /// </summary>
     /// <param name="installer">The installer.</param>
-    internal GenericShellExInfrastructure(CsInstall.Installer installer) : base(installer) {
-      InstallerTasks.AddRange(
-        new List<IInstallerTask>() {
-          new ExtractMsixPackage(this),
-          new CheckMsixPackageCompatibility(this),
-          new InstallCertificate(this),
-          new InstallMsixPackage(this),
-          new WriteExampleConfigFile(this),
-          new RegisterDll(this)
-        }
-      );
+    internal GenericShellExInfrastructure(CsInstall.Installer installer) {
+      Installer = installer;
+
+      InstallerTasks = new() {
+        new ExtractMsixPackage(this),
+        new CheckMsixPackageCompatibility(this),
+        new InstallCertificate(this),
+        new InstallMsixPackage(this),
+        new WriteExampleConfigFile(this),
+        new RegisterDll(this)
+      };
+
+      UninstallerTasks = new() {
+        new UnregisterDll(this),
+        new UninstallMsixPackage(this),
+        new UninstallCertificate(this)
+      };
 
       // We need the registration script to unregister the DLL
       UninstallerTasksNeedResources = true;
-
-      UninstallerTasks.AddRange(
-        new List<IUninstallerTask>() {
-          new UnregisterDll(this),
-          new UninstallMsixPackage(this),
-          new UninstallCertificate(this)
-        }
-      );
     }
 
-    public override bool Checks() {
+    public bool Checks() {
       if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
         Installer.Error($"{Installer.ShortName} can only be installed on Windows.");
 
@@ -88,8 +94,8 @@ namespace GenericShellExInfrastructureInstaller {
       return true;
     }
 
-    public override void InstallChecks() { }
+    public void InstallChecks() { }
 
-    public override void UninstallChecks() { }
+    public void UninstallChecks() { }
   }
 }

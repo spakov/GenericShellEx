@@ -30,6 +30,12 @@
     <Optimize>true</Optimize>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+    <PlatformTarget>ARM64</PlatformTarget>
+  </PropertyGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <Reference Include="CsInstall">
       <HintPath>..\..\CsInstall\CsInstall\bin\Debug\CsInstall.dll</HintPath>
@@ -80,7 +86,7 @@
     <None Include="Resources\7zS2con.sfx" />
   </ItemGroup>
   <Target Name="CopyResources" BeforeTargets="BeforeBuild">
-    <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=x64" />
+    <MSBuild Projects="..\GenericShellExPackage\GenericShellExPackage.wapproj" Targets="Build" Properties="Configuration=Release;Platform=$(Platform)" />
     <Copy SourceFiles="..\GenericShellExPackage\GenericShellExPackage.msix" DestinationFolder="Resources\" />
     <Copy SourceFiles="..\Register-GenericShellEx.ps1" DestinationFolder="Resources\" />
     <Copy SourceFiles="..\certificates\$(CertificateThumbprint).cer" DestinationFolder="Resources\" />
